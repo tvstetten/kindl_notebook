@@ -1,13 +1,19 @@
 # Kindle Notebook
 
-This project extracts highlights from Kindle notes and generates markdown files with translations and example sentences using the Google Generative AI model.
+This project extracts highlights from Kindle Notebooks and generates markdown files with translations and example sentences using the Google Generative AI model. The markdown files can be used in note-taking apps like Obsidian.
+
+I decided to use the clipboard instead of web scraping because I need to select the book I made the notes on.
+
+## Why I made this
+
+I wanted to create a tool that would help me learn new words and phrases from the books I read on my Kindle. I also wanted to practice my Python skills and learn how to use the Google Generative AI model.
 
 ## Features
 
 - Extracts highlights from Kindle notes (using the clipboard).
 - Translates English words to German.
 - Generates example sentences in both English and German.
-- Creates markdown files with the extracted information.
+- Creates markdown files with the extracted information including YAML front matter.
 
 ## Requirements
 
@@ -26,18 +32,10 @@ This project extracts highlights from Kindle notes and generates markdown files 
     cd kindle-notebook
     ```
 
-2. Create a virtual environment and activate it:
+2. Initialize Project and Install the required packages:
 
     ```sh
-    python -m venv venv
-    .\venv\Scripts\activate  # On Windows
-    source venv/bin/activate  # On macOS/Linux
-    ```
-
-3. Install the required packages:
-
-    ```sh
-    pip install -r requirements.txt
+    uv sync
     ```
 
 4. Create a [.env](http://_vscodecontentref_/1) file in the project root directory and add your environment variables:
@@ -54,11 +52,12 @@ This project extracts highlights from Kindle notes and generates markdown files 
 
 2. Run the script:
 
-    ```sh
-    python getnotes.py
-    ```
+    goto https://read.amazon.com/notebook find the book with your english words select all and copy to clipboard.
 
-3. The script will extract the highlights, translate the words, generate example sentences, and create markdown files in the specified [OBSIDIAN_PATH](http://_vscodecontentref_/2).
+    then run the script:
+    ```sh
+    python kindlnotebook.py
+    ```
 
 ## Example
 
@@ -69,7 +68,7 @@ Here is an example of the generated markdown file:
 created: 2025-02-21T12:34:56
 creator: Thomas von Stetten
 tags: [dictionary/eng_ger]
-word_type: (verb)
+word_type: verb
 english: give up
 german:
   - aufgeben
@@ -81,6 +80,7 @@ tenses:
   - give up
   - gave up
   - given up
+source: The Oxford Dictionary of English
 ---
 ## Example Sentences
 |English|German|
