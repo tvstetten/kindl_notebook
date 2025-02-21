@@ -13,7 +13,7 @@ load_dotenv()
 AI_MODEL = os.environ.get("AI_MODEL") or ""
 API_KEY= os.environ.get("GEMENI_API_KEY")
 OBSIDIAN_PATH = os.environ.get("OBSIDIAN_PATH")
-
+DATE_FORMAT = '%Y-%m-%dT%H:%M:%S'
 
 EXAMPLE = """Your Kindle Notes For:
 Match Game (Expeditionary Force Book 14)
@@ -156,7 +156,7 @@ For every word in that list:
 
 Please provide the pure json without comments.'''
 
-def extract_highlights():
+def extract_highlights() -> tuple[str, list[str]]:
     # Inhalt der Zwischenablage abrufen
     clipboard_content = pyperclip.paste()
     # clipboard_content = EXAMPLE
@@ -165,13 +165,25 @@ def extract_highlights():
     lines = clipboard_content.split('\n')
 
     # Text extrahieren, der der Zeile mit 'highlight |' folgt
+    title: str = ""
     highlights = []
-    for i in range(len(lines)):
-        if 'highlight |' in lines[i]:
-            text = lines[i + 1].strip().replace('"', '')
+    i = 0
+    max_i = len(lines)
+    while i < max_i:
+        if 'Your Kindle Notes For:' in lines[i]:
+            # The next line contains the book title
+            i += 1
+            title = lines[i].strip()
+
+        elif 'highlight |' in lines[i]:
+            # The next line contains the note
+            i += 1
+            text = lines[i].strip().replace('"', '')
             highlights.append(text)
 
-    return highlights
+        i += 1
+
+    return (title, highlights)
 
 def add_list_yaml(list: list[str], key: str, items: None|list[str], force: bool=False):
     '''Add a list to a yaml list'''
@@ -181,10 +193,10 @@ def add_list_yaml(list: list[str], key: str, items: None|list[str], force: bool=
             list.extend([f'  - {item}' for item in items])
 
 
-def create_file(original: str, english: str, germans: list, raw_sentences: list[dict[str, str]], tenses: list, word_type: str):
+def create_file(book_title: str, original: str, english: str, germans: list, raw_sentences: list[dict[str, str]], tenses: list, word_type: str):
     file_name = f"{OBSIDIAN_PATH}{english} - {germans[0]}.md"
     # Current date in the given format
-    current_datetime = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+    current_datetime = datetime.now().strftime(DATE_FORMAT)
 
     # File-Content; starting with the YAML front matter
     content = [
@@ -199,6 +211,8 @@ def create_file(original: str, english: str, germans: list, raw_sentences: list[
     ])
     add_list_yaml(content, 'german', germans)
     add_list_yaml(content, 'tenses', tenses)
+    if book_title:
+        content.append("source: " + book_title)
     content.extend([
         '---',
         '## Example Sentences',
@@ -213,7 +227,7 @@ def create_file(original: str, english: str, germans: list, raw_sentences: list[
 
 def main_read_clipboard():
     # Highlights extrahieren und ausgeben
-    highlights = extract_highlights()
+    book_title, highlights = extract_highlights()
 
     list = f'''["{'","'.join(highlights) }"]'''
     prompt = prompt_template.replace("[$$LIST$$]", list)
@@ -239,7 +253,7 @@ def main_read_clipboard():
         raw_sentences = response["sentences"]
 
         # Datei für jedes Highlight erstellen
-        create_file(original, english, germans, raw_sentences, tenses, word_type)
+        create_file(book_title, original, english, germans, raw_sentences, tenses, word_type)
 
     print("done")
 
